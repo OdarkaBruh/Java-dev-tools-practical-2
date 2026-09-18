@@ -13,8 +13,12 @@ import java.util.Properties;
 public class PropertyReader {
     private String path = "";
 
+    /**
+     * Sets the default path for the property reader.
+     * @param path new default path
+     */
     void setPath(String path) {
-        this.path = path+"/";
+        this.path = path;
     }
 
     /**

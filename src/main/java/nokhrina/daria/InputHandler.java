@@ -1,22 +1,54 @@
 package nokhrina.daria;
 
+import nokhrina.daria.constants.NameConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Properties;
 
-import static nokhrina.daria.NamesConstants.PROPERTY_FILE_NAME;
 
+/** Transforms information inside Property files and System properties into usable data:
+ * reads type, creates container from a file, etc. */
 public class InputHandler {
+    /** Main class logger */
+    private final Logger logger = LoggerFactory.getLogger(InputHandler.class);
+    /** Main property reader to read system parameters / from file */
     private final PropertyReader propertyReader = new PropertyReader();
 
-    private final String DEFAULT_TYPE = "int";
+    /** default value for a container, which will be used if System.Properties doesn't contain one */
+    private static final String DEFAULT_TYPE = "int";
 
-    Class<? extends Number> readType(String variableName) {
-        String type = propertyReader.getSystem(variableName);
-        if (type == null) type = DEFAULT_TYPE;
-        return getType(type);
+    InputHandler() {};
+    InputHandler(String path) {
+        setPath(path);
+    }
+    /**
+     * Reads system property with the specified name and returns the corresponding class. If system property doesn't
+     * exist - returns default value (DEFAULT_TYPE).
+     *
+     * @param variableName System Property name
+     * @return Сlass that defines a data type (int / short / float / etc)
+     */
+    Class readType(String variableName) {
+        String typeString = propertyReader.getSystem(variableName);
+        if (typeString == null) {
+            typeString = DEFAULT_TYPE;
+            logger.warn("Property containing type has not been read. Default type is assigned.");
+        }
+        Class type = getType(typeString);
+        logger.info(String.format("Type is %s", type.getName()));
+        return type;
     }
 
-    Class<? extends Number> getType(String type) {
+    /**
+     * Turns string with a type to corresponding class and returns it.
+     *
+     * @param type the name of the type (without .class)
+     * @return the corresponding class for the type
+     */
+    Class getType(String type) {
         switch (type.toLowerCase()) {
             case "byte" -> {
                 return Byte.class;
@@ -36,88 +68,48 @@ public class InputHandler {
             case "double" -> {
                 return Double.class;
             }
-            default -> throw new IllegalArgumentException("Specified type doesn't exist");
+            default -> throw new IllegalArgumentException(String.format("Specified type \"%s\" doesn't exist", type));
         }
     }
 
-    public NumberContainer getNumberContainer(Class<? extends Number> classType) throws IOException {
-        Properties allProperties = propertyReader.getFromFile(PROPERTY_FILE_NAME);
+    /**
+     * Creates Number Container instance based on a file with specified name.
+     *
+     * @param propertyFileName name of the file to read
+     * @return created instance
+     * @throws IOException if file doesn't exist.
+     */
+    NumberContainer createNumberContainer(String propertyFileName) throws IOException {
+        Properties allProperties = propertyReader.getFromFile(propertyFileName);
 
         NumberContainer container = new NumberContainer(
-                getNumberFromProperty(NamesConstants.DEFAULT_NAME_OF_MIN, allProperties),
-                getNumberFromProperty(NamesConstants.DEFAULT_NAME_OF_MAX, allProperties),
-                getNumberFromProperty(NamesConstants.DEFAULT_NAME_OF_STEP, allProperties));
+                readValueFromProperties(NameConstants.DEFAULT_NAME_OF_MIN, allProperties),
+                readValueFromProperties(NameConstants.DEFAULT_NAME_OF_MAX, allProperties),
+                readValueFromProperties(NameConstants.DEFAULT_NAME_OF_STEP, allProperties));
 
-        return limitValuesToType(classType, container);
-    }
-
-    private Number getNumberFromProperty(String name, Properties properties) {
-        String num = properties.getProperty(name);
-
-        if (num == null) throw new IllegalArgumentException("Property with name \"" + name + "\" doesn't exist.");
-        return Double.valueOf(num);
-    }
-
-    NumberContainer limitValuesToType(Class<? extends Number> classType, NumberContainer container) {
-        if (classType == Byte.class) {
-            if (Double.valueOf(container.getMin().byteValue()) != container.getMin().doubleValue() ||
-                    Double.valueOf(container.getMax().byteValue()) != container.getMax().doubleValue() ||
-                    Double.valueOf(container.getStep().byteValue()) != container.getStep().doubleValue())
-                throw new NumberFormatException("Number is larger than byte");
-        } else if (classType == Short.class) {
-            if (Double.valueOf(container.getMin().shortValue()) != container.getMin().doubleValue() ||
-                    Double.valueOf(container.getMax().shortValue()) != container.getMax().doubleValue() ||
-                    Double.valueOf(container.getStep().shortValue()) != container.getStep().doubleValue())
-                throw new NumberFormatException("Number is larger than short");
-            //TODO: BELOW NEW COMPARISON METHOD??
-        } else if (classType == Integer.class) {
-            container.setMin(container.getMin().intValue());
-            container.setMax(container.getMax().intValue());
-            container.setStep(container.getMax().intValue());
-        } else if (classType == Double.class) {
-            container.setMin(container.getMin().doubleValue());
-            container.setMax(container.getMax().doubleValue());
-            container.setStep(container.getMax().doubleValue());
-        } else if (classType == Long.class) {
-            container.setMin(container.getMin().longValue());
-            container.setMax(container.getMax().longValue());
-            container.setStep(container.getMax().longValue());
-        } else if (classType == Float.class) {
-            container.setMin(container.getMin().floatValue());
-            container.setMax(container.getMax().floatValue());
-            container.setStep(container.getMax().floatValue());
-        }
-        else throw new RuntimeException();
         return container;
     }
 
-//     NumberContainer limitValuesToType(Class<? extends Number> classType, NumberContainer container) {
-//        if (classType == Byte.class) {
-//            container.setMin(container.getMin().byteValue());
-//            container.setMax(container.getMax().byteValue());
-//            container.setStep(container.getMax().byteValue());
-//        } else if (classType == Short.class) {
-//            container.setMin(container.getMin().shortValue());
-//            container.setMax(container.getMax().shortValue());
-//            container.setStep(container.getMax().shortValue());
-//        } else if (classType == Integer.class) {
-//            container.setMin(container.getMin().intValue());
-//            container.setMax(container.getMax().intValue());
-//            container.setStep(container.getMax().intValue());
-//        } else if (classType == Double.class) {
-//            container.setMin(container.getMin().doubleValue());
-//            container.setMax(container.getMax().doubleValue());
-//            container.setStep(container.getMax().doubleValue());
-//        } else if (classType == Long.class) {
-//            container.setMin(container.getMin().longValue());
-//            container.setMax(container.getMax().longValue());
-//            container.setStep(container.getMax().longValue());
-//        } else if (classType == Float.class) {
-//            container.setMin(container.getMin().floatValue());
-//            container.setMax(container.getMax().floatValue());
-//            container.setStep(container.getMax().floatValue());
-//        }
-//        else throw new RuntimeException();
-//        return container;
-//    }
+    /**
+     * Sets the default path for the property reader.
+     *
+     * @param path new default path
+     */
+    void setPath(String path) {
+        propertyReader.setPath(path);
+    }
+
+    /**
+     * Reads the property with the specified name from the Properties object
+     *
+     * @param name       the property name
+     * @param properties all properties
+     * @return the value of this property as a BigDecimal
+     * @throws IllegalArgumentException if property is null
+     */
+    private BigDecimal readValueFromProperties(String name, Properties properties) {
+        String number = properties.getProperty(name);
+        if (number == null) throw new IllegalArgumentException("Property with name \"" + name + "\" doesn't exist.");
+        return new BigDecimal(number);
+    }
 }
