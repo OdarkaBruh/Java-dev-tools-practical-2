@@ -1,6 +1,9 @@
 package nokhrina.daria;
 
+import nokhrina.daria.MultiplicationLogic.MultiplicationHandler;
+import nokhrina.daria.NumberContainer.NumberContainer;
 import nokhrina.daria.constants.NameConstants;
+import nokhrina.daria.IO.InputHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +21,7 @@ public class PracticeTask {
             NumberContainer numbersContainer = inputHandler.createNumberContainer(propertyFileName);
             numbersContainer.setType(inputHandler.readType(nameOfSystemVariable));
             numbersContainer.check();
-            new MultiplierOutputHandler().createMultiplyTable(numbersContainer);
+            new MultiplicationHandler(numbersContainer).createTable();
         } catch (NumberFormatException e) {
             //TODO: CHECK
         } catch (IllegalArgumentException e) {

@@ -2,24 +2,23 @@ package nokhrina.daria;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import nokhrina.daria.MultiplicationLogic.MultiplicationHandler;
+import nokhrina.daria.NumberContainer.NumberContainer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class NumberContainerMultiplyTest {
-    Logger logger = LoggerFactory.getLogger(NumberContainerMultiplyTest.class);
-
     private static final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     
     @BeforeAll
     static void innitLoggerAppender() {
         ch.qos.logback.classic.Logger loggerContainer = (ch.qos.logback.classic.Logger)
-                LoggerFactory.getLogger(NumberContainer.class);
+                LoggerFactory.getLogger(MultiplicationHandler.class);
         listAppender.start();
         loggerContainer.addAppender(listAppender);
     }
@@ -32,10 +31,10 @@ public class NumberContainerMultiplyTest {
 
         int[] result = {100, 140, 180, 220};
         for (NumberContainer container : testValues) {
-            container.setIsDecimal(false);
+            MultiplicationHandler handler = new MultiplicationHandler(container);
             for (var i = 0; i < 4; i++) {
-                container.multiply();
-                Assertions.assertEquals(container.getLastResult().intValue(), result[i]);
+                handler.multiplyOnce();
+                Assertions.assertEquals(handler.getLastResult().intValue(), result[i]);
             }
         }
     }
@@ -48,10 +47,10 @@ public class NumberContainerMultiplyTest {
 
         int[] result = {1, -1, -3, -5};
         for (NumberContainer container : testValues) {
-            container.setIsDecimal(false);
+            MultiplicationHandler handler = new MultiplicationHandler(container);
             for (var i = 0; i < 4; i++) {
-                container.multiply();
-                Assertions.assertEquals(result[i], container.getLastResult().intValue());
+                handler.multiplyOnce();
+                Assertions.assertEquals(result[i], handler.getLastResult().intValue());
             }
         }
     }
@@ -60,11 +59,9 @@ public class NumberContainerMultiplyTest {
     @DisplayName("Basic Test - warn test")
     void basicCheckMultiplyWarningTest() {
         NumberContainer container =  new NumberContainer("-1", "10", "2", Integer.class);
-        container.setIsDecimal(false);
+        MultiplicationHandler handler = new MultiplicationHandler(container);
 
-        for (var i = 0; i < 7; i++) {
-            container.multiply();
-        }
+        for (var i = 0; i < 7; i++) handler.multiplyOnce();
 
         List<ILoggingEvent> logsList = listAppender.list;
 
@@ -72,10 +69,8 @@ public class NumberContainerMultiplyTest {
         Assertions.assertEquals(1, logsList.size());
 
         container =  new NumberContainer("120", "130", "10", Byte.class);
-        container.setIsDecimal(false);
-        for (var i = 0; i < 3; i++) {
-            container.multiply();
-        }
+        handler = new MultiplicationHandler(container);
+        for (var i = 0; i < 3; i++) handler.multiplyOnce();
 
         Assertions.assertTrue(logsList.get(1).getMessage().matches(".*exceeded the maximum value for this type.*"));
         Assertions.assertEquals("The multiplier exceeded the maximum value.",

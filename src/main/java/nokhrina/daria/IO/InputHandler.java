@@ -1,5 +1,6 @@
-package nokhrina.daria;
+package nokhrina.daria.IO;
 
+import nokhrina.daria.NumberContainer.NumberContainer;
 import nokhrina.daria.constants.NameConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +21,8 @@ public class InputHandler {
     /** default value for a container, which will be used if System.Properties doesn't contain one */
     private static final String DEFAULT_TYPE = "int";
 
-    InputHandler() {};
-    InputHandler(String path) {
+    public InputHandler() {};
+    public InputHandler(String path) {
         setPath(path);
     }
     /**
@@ -31,7 +32,7 @@ public class InputHandler {
      * @param variableName System Property name
      * @return Сlass that defines a data type (int / short / float / etc)
      */
-    Class readType(String variableName) {
+    public Class readType(String variableName) {
         String typeString = propertyReader.getSystem(variableName);
         if (typeString == null) {
             typeString = DEFAULT_TYPE;
@@ -79,7 +80,7 @@ public class InputHandler {
      * @return created instance
      * @throws IOException if file doesn't exist.
      */
-    NumberContainer createNumberContainer(String propertyFileName) throws IOException {
+    public NumberContainer createNumberContainer(String propertyFileName) throws IOException {
         Properties allProperties = propertyReader.getFromFile(propertyFileName);
 
         NumberContainer container = new NumberContainer(
@@ -95,7 +96,7 @@ public class InputHandler {
      *
      * @param path new default path
      */
-    void setPath(String path) {
+    public void setPath(String path) {
         propertyReader.setPath(path);
     }
 

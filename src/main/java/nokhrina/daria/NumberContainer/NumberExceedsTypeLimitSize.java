@@ -1,4 +1,4 @@
-package nokhrina.daria;
+package nokhrina.daria.NumberContainer;
 
 public class NumberExceedsTypeLimitSize extends RuntimeException{
     NumberExceedsTypeLimitSize(Class type) {
