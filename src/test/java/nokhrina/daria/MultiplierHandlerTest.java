@@ -3,6 +3,9 @@ package nokhrina.daria;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import nokhrina.daria.MultiplicationLogic.MultiplicationHandler;
+import nokhrina.daria.NumberContainer.NumberContainer;
+import nokhrina.daria.NumberContainer.Validator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -14,18 +17,16 @@ public class MultiplierHandlerTest {
     private static final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     private List<ILoggingEvent> logsList;
 
-    private final MultiplierOutputHandler multiplierOutputHandler = new MultiplierOutputHandler();
-
     @BeforeAll
     static void innitLoggerAppender() {
-        Logger loggerContainer = (Logger) LoggerFactory.getLogger(MultiplierOutputHandler.class);
+        Logger loggerContainer = (Logger) LoggerFactory.getLogger(MultiplicationHandler.class);
         listAppender.start();
         loggerContainer.addAppender(listAppender);
     }
 
     private void run(NumberContainer numberContainer) {
-        numberContainer.checkWhetherValuesAndTypeAreDecimal();
-        multiplierOutputHandler.createMultiplyTable(numberContainer);
+        new Validator(numberContainer).checkWhetherValuesAndTypeAreDecimal();
+        new MultiplicationHandler(numberContainer).createTable();
         logsList = listAppender.list;
     }
 
@@ -37,7 +38,7 @@ public class MultiplierHandlerTest {
         Assertions.assertEquals("\n10 * 10 = 100 ‖ 10 * 14 = 140 ‖ 10 * 18 = 180 ‖ 10 * 22 = 220 ‖ \n" +
                         "14 * 14 = 196 ‖ 14 * 18 = 252 ‖ 14 * 22 = 308 ‖ \n" +
                         "18 * 18 = 324 ‖ 18 * 22 = 396 ‖ \n" +
-                        "22 * 22 = 484 ‖ ",
+                        "22 * 22 = 484 ‖ \n",
                 logsList.getLast().getMessage());
     }
 
@@ -52,7 +53,7 @@ public class MultiplierHandlerTest {
                         "0.377 * 0.377 = 0.142129   ‖ 0.377 * 0.877 = 0.330629   ‖ 0.377 * 1.377 = 0.519129   ‖ 0.377 * 1.877 = 0.707629   ‖ \n" +
                         "0.877 * 0.877 = 0.769129   ‖ 0.877 * 1.377 = 1.207629   ‖ 0.877 * 1.877 = 1.646129   ‖ \n" +
                         "1.377 * 1.377 = 1.896129   ‖ 1.377 * 1.877 = 2.584629   ‖ \n" +
-                        "1.877 * 1.877 = 3.523129   ‖ ",
+                        "1.877 * 1.877 = 3.523129   ‖ \n",
                 logsList.getLast().getMessage());
 
         run(new NumberContainer("-1.1", "2", "0.5", Double.class));
@@ -63,7 +64,7 @@ public class MultiplierHandlerTest {
                         "0.4 * 0.4 = 0.16   ‖ 0.4 * 0.9 = 0.36   ‖ 0.4 * 1.4 = 0.56   ‖ 0.4 * 1.9 = 0.76   ‖ \n" +
                         "0.9 * 0.9 = 0.81   ‖ 0.9 * 1.4 = 1.26   ‖ 0.9 * 1.9 = 1.71   ‖ \n" +
                         "1.4 * 1.4 = 1.96   ‖ 1.4 * 1.9 = 2.66   ‖ \n" +
-                        "1.9 * 1.9 = 3.61   ‖ ",
+                        "1.9 * 1.9 = 3.61   ‖ \n",
                 logsList.getLast().getMessage());
     }
 
@@ -72,14 +73,13 @@ public class MultiplierHandlerTest {
     void warnAboutResultExceedsTest() {
         NumberContainer numberContainer = new NumberContainer("1", "200", "50", Byte.class);
         run(numberContainer);
-
         Assertions.assertEquals("The result displayed below exceeded the limit for this type.",
-                logsList.get(logsList.size() - 2).getMessage());
+                logsList.get(logsList.size()-2).getMessage());
         Assertions.assertEquals("\n" +
                         "1 * 1 = 1            ‖ 1 * 51 = 51          ‖ 1 * 101 = 101        ‖ 1 * 151 = 151(!)     ‖ \n" +
                         "51 * 51 = 2601(!)    ‖ 51 * 101 = 5151(!)   ‖ 51 * 151 = 7701(!)   ‖ \n" +
                         "101 * 101 = 10201(!) ‖ 101 * 151 = 15251(!) ‖ \n" +
-                        "151 * 151 = 22801(!) ‖ ",
+                        "151 * 151 = 22801(!) ‖ \n",
                 logsList.getLast().getMessage());
     }
 
